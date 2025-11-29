@@ -143,7 +143,7 @@ const App: React.FC = () => {
                 {!selectedMode && (
                   <div className="grid grid-cols-1 gap-6 animate-[fadeIn_0.5s_ease-out]">
                     <div className="text-center mb-4">
-                      <p className="font-pixel text-xs text-green-500 mb-2 typewriter">>> SYSTEM READY. CHOOSE MODULE:</p>
+                      <p className="font-pixel text-xs text-green-500 mb-2 typewriter">{'>> SYSTEM READY. CHOOSE MODULE:'}</p>
                     </div>
                     {MODES.map((mode) => (
                       <button
