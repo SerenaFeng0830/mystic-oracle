@@ -2,9 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import ParticleBackground from './components/ParticleBackground';
 import LoadingOrb from './components/LoadingOrb';
 import { PixelMoon, PixelPotion, PixelCrystalBall, PixelSkull } from './components/PixelSymbols';
-import { streamDivination } from './services/geminiService';
+import { streamDivination } from './services/api';
 import { DivinationType, DivinationConfig } from './types';
-import { Sparkles, ArrowLeft, Terminal } from 'lucide-react';
+import { Sparkles, ArrowLeft } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 // Constants for UI
@@ -14,28 +14,28 @@ const MODES: DivinationConfig[] = [
     name: "塔罗秘境 (Tarot)",
     description: "揭示过去、现在与未来的潜意识指引。",
     icon: "cards",
-    color: "bg-purple-900"
+    color: "from-purple-900 to-indigo-900"
   },
   {
     id: DivinationType.ICHING,
     name: "周易神算 (I Ching)",
     description: "源自东方的古老智慧，解析阴阳变幻。",
     icon: "yin-yang",
-    color: "bg-slate-800"
+    color: "from-slate-800 to-gray-900"
   },
   {
     id: DivinationType.ASTROLOGY,
     name: "星盘解读 (Astrology)",
     description: "聆听星辰的低语，洞察宇宙能量。",
     icon: "star",
-    color: "bg-blue-900"
+    color: "from-blue-900 to-cyan-900"
   },
   {
     id: DivinationType.RUNES,
     name: "卢恩符文 (Runes)",
     description: "北欧奥丁的神谕，直击命运核心。",
     icon: "stone",
-    color: "bg-emerald-900"
+    color: "from-emerald-900 to-teal-900"
   }
 ];
 
@@ -45,10 +45,7 @@ const App: React.FC = () => {
   const [result, setResult] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
-  
-  // Specific state for form inputs
   const [birthDate, setBirthDate] = useState('');
-
   const resultContainerRef = useRef<HTMLDivElement>(null);
 
   const handleModeSelect = (modeId: DivinationType) => {
@@ -72,26 +69,25 @@ const App: React.FC = () => {
     setHasStarted(true);
     setResult('');
 
-    let prompt = userInput;
+    let context = '';
     if (selectedMode === DivinationType.ASTROLOGY && birthDate) {
-      prompt = `我的出生日期是 ${birthDate}。我的问题是：${userInput}`;
+      context = `用户出生日期: ${birthDate}`;
     }
 
     try {
-      const stream = streamDivination(selectedMode!, prompt);
+      const stream = streamDivination(selectedMode!, userInput, context);
       
       for await (const chunk of stream) {
         setResult(prev => prev + chunk);
       }
     } catch (e) {
       console.error(e);
-      setResult("冥冥之中的迷雾遮挡了视线...");
+      setResult("无法连接到以太网...请稍后再试。");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Auto scroll to bottom of result
   useEffect(() => {
     if (resultContainerRef.current) {
       resultContainerRef.current.scrollTop = resultContainerRef.current.scrollHeight;
@@ -99,190 +95,181 @@ const App: React.FC = () => {
   }, [result]);
 
   return (
-    <div className="min-h-screen text-slate-200 relative overflow-hidden flex flex-col items-center">
+    <div className="min-h-screen text-slate-200 relative overflow-hidden flex flex-col items-center justify-center font-serif selection:bg-amber-500 selection:text-black">
       <ParticleBackground />
+      
+      {/* Scanline Effect Overlay */}
+      <div className="fixed inset-0 pointer-events-none z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] bg-repeat pointer-events-none opacity-20"></div>
 
-      {/* Decorative Pixel Stickers */}
-      <div className="fixed top-10 left-[5%] animate-float opacity-80 hidden lg:block pointer-events-none z-0">
-        <PixelPotion size={120} />
+      {/* Decorative Floating Pixels */}
+      <div className="fixed top-10 left-[5%] animate-float opacity-60 hidden xl:block pointer-events-none z-0">
+        <PixelPotion size={100} />
       </div>
-      <div className="fixed bottom-20 right-[5%] animate-float opacity-60 hidden lg:block pointer-events-none z-0" style={{ animationDelay: '1s' }}>
-        <PixelCrystalBall size={140} />
-      </div>
-      <div className="fixed top-20 right-[10%] opacity-40 hidden lg:block pointer-events-none z-0">
-        <PixelMoon size={80} color="#fbbf24" />
-      </div>
-      <div className="fixed bottom-10 left-[10%] opacity-30 hidden lg:block pointer-events-none z-0" style={{ animationDelay: '2s' }}>
-        <PixelSkull size={100} />
+      <div className="fixed bottom-20 right-[5%] animate-float opacity-40 hidden xl:block pointer-events-none z-0" style={{ animationDelay: '2s' }}>
+        <PixelCrystalBall size={120} />
       </div>
 
-      {/* Header */}
-      <header className="w-full p-8 flex flex-col items-center justify-center z-10 relative mt-4">
-        <div className="border-4 border-amber-500 bg-black/80 p-4 shadow-[8px_8px_0_0_#b45309] transform hover:-translate-y-1 transition-transform">
-           <h1 className="text-3xl md:text-5xl font-pixel font-bold text-amber-400 tracking-wider pixel-text-shadow cursor-pointer" onClick={handleBack}>
-            MYSTIC ORACLE
-          </h1>
-          <p className="text-center text-amber-200 mt-2 font-serif text-sm md:text-base border-t-2 border-amber-900/50 pt-2">
-            秘 境 神 谕
+      {/* Main Container */}
+      <div className="w-full max-w-2xl px-4 z-10 my-8">
+        
+        {/* Header Logo */}
+        <div 
+          className="text-center mb-10 cursor-pointer group" 
+          onClick={handleBack}
+        >
+          <div className="inline-block relative">
+            <h1 className="text-4xl md:text-6xl font-pixel font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-300 to-amber-600 pixel-text-shadow tracking-widest group-hover:scale-105 transition-transform duration-300">
+              MYSTIC ORACLE
+            </h1>
+            <div className="absolute -inset-2 bg-amber-500/20 blur-xl rounded-full opacity-50 group-hover:opacity-75 transition-opacity"></div>
+          </div>
+          <p className="text-amber-200/60 font-cinzel text-sm mt-3 tracking-[0.3em] uppercase">
+            Digital Divination System .net
           </p>
         </div>
-      </header>
 
-      <main className="w-full max-w-4xl px-4 pb-12 z-10 flex-grow flex flex-col justify-center">
-        
-        {/* Mode Selection Grid */}
-        {!selectedMode && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-[fadeIn_1s_ease-out] mt-4">
-            {MODES.map((mode) => (
-              <button
-                key={mode.id}
-                onClick={() => handleModeSelect(mode.id)}
-                className={`group relative pixel-box p-6 transition-all duration-200 hover:bg-slate-800 bg-opacity-90 bg-slate-900`}
-              >
-                 {/* Inner border for double-border effect */}
-                 <div className="absolute inset-1 border-2 border-white/5 pointer-events-none" />
-                 
-                <div className="relative z-10 flex items-start space-x-4">
-                  <div className={`p-4 ${mode.color} border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,0.5)]`}>
-                    {/* Using simple icons but styled ruggedly */}
-                    <div className="text-white">
-                        {mode.id === DivinationType.TAROT && <div className="font-pixel text-2xl">I</div>}
-                        {mode.id === DivinationType.ICHING && <div className="font-pixel text-2xl">II</div>}
-                        {mode.id === DivinationType.ASTROLOGY && <div className="font-pixel text-2xl">III</div>}
-                        {mode.id === DivinationType.RUNES && <div className="font-pixel text-2xl">IV</div>}
+        {/* Content Box */}
+        <div className="bg-[#050505] border-4 border-[#2a2a2a] shadow-[10px_10px_0_0_rgba(0,0,0,0.8)] relative">
+            {/* Corner Decorations */}
+            <div className="absolute -top-1 -left-1 w-4 h-4 bg-amber-600"></div>
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-600"></div>
+            <div className="absolute -bottom-1 -left-1 w-4 h-4 bg-amber-600"></div>
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-amber-600"></div>
+
+          <div className="p-1 border border-slate-700">
+            <div className="bg-[#111] min-h-[500px] p-6 md:p-8 relative overflow-hidden">
+                
+                {/* Mode Selection */}
+                {!selectedMode && (
+                  <div className="grid grid-cols-1 gap-6 animate-[fadeIn_0.5s_ease-out]">
+                    <div className="text-center mb-4">
+                      <p className="font-pixel text-xs text-green-500 mb-2 typewriter">>> SYSTEM READY. CHOOSE MODULE:</p>
                     </div>
+                    {MODES.map((mode) => (
+                      <button
+                        key={mode.id}
+                        onClick={() => handleModeSelect(mode.id)}
+                        className={`group relative h-24 overflow-hidden border-2 border-slate-700 hover:border-amber-500 transition-all duration-300 active:translate-y-1 active:shadow-none shadow-[4px_4px_0_0_#000]`}
+                      >
+                         <div className={`absolute inset-0 bg-gradient-to-r ${mode.color} opacity-40 group-hover:opacity-60 transition-opacity`}></div>
+                         <div className="relative z-10 flex items-center h-full px-6">
+                            <div className="font-pixel text-4xl opacity-20 mr-6 text-white group-hover:opacity-100 group-hover:scale-110 transition-all">
+                                {mode.id === DivinationType.TAROT && 'I'}
+                                {mode.id === DivinationType.ICHING && 'II'}
+                                {mode.id === DivinationType.ASTROLOGY && 'III'}
+                                {mode.id === DivinationType.RUNES && 'IV'}
+                            </div>
+                            <div className="text-left border-l-2 border-white/10 pl-6">
+                                <h3 className="font-cinzel text-xl font-bold text-amber-100 group-hover:text-amber-400">{mode.name}</h3>
+                                <p className="text-xs text-slate-400 font-sans mt-1">{mode.description}</p>
+                            </div>
+                         </div>
+                      </button>
+                    ))}
                   </div>
-                  <div className="text-left pt-1">
-                    <h2 className="text-xl font-bold text-amber-300 group-hover:text-amber-200 transition-colors font-cinzel pixel-text-shadow">{mode.name}</h2>
-                    <p className="text-sm text-slate-400 mt-2 leading-relaxed font-sans">{mode.description}</p>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
+                )}
 
-        {/* Divination Interface */}
-        {selectedMode && (
-          <div className="w-full max-w-2xl mx-auto animate-[slideUp_0.5s_ease-out]">
-            
-            {/* Retro Card Container */}
-            <div className="bg-[#1a1b26] border-4 border-slate-500 shadow-[8px_8px_0_0_#0f172a] p-1">
-              <div className="border-2 border-slate-700 p-6 md:p-8 bg-[#13141f]">
-              
-                {/* Header with Back Button */}
-                <div className="flex items-center justify-between mb-8 pb-4 border-b-4 border-slate-800 border-dashed">
-                  <button 
-                    onClick={handleBack}
-                    className="flex items-center text-slate-400 hover:text-amber-400 transition-colors group"
-                  >
-                    <ArrowLeft size={20} className="mr-2 group-hover:-translate-x-1 transition-transform" />
-                    <span className="font-pixel text-xs">BACK</span>
-                  </button>
-                  <h2 className="text-xl md:text-2xl font-bold text-amber-400 font-cinzel pixel-text-shadow tracking-widest">
-                    {MODES.find(m => m.id === selectedMode)?.name.split('(')[0]}
-                  </h2>
-                </div>
-
-                {/* Input Section */}
-                {!hasStarted ? (
-                  <div className="space-y-6">
-                    <div className="text-center mb-6 bg-slate-900/50 p-4 border-2 border-slate-800">
-                        <p className="text-lg text-purple-300 font-serif italic">
-                          "命运之轮已经开始转动..."
-                        </p>
-                    </div>
-
-                    {selectedMode === DivinationType.ASTROLOGY && (
-                      <div className="flex flex-col space-y-2">
-                        <label className="text-xs text-slate-400 font-pixel uppercase">Birth Date</label>
-                        <input
-                            type="date"
-                            value={birthDate}
-                            onChange={(e) => setBirthDate(e.target.value)}
-                            className="w-full bg-black border-2 border-slate-600 p-3 text-slate-200 focus:outline-none focus:border-amber-500 focus:shadow-[4px_4px_0_0_#b45309] transition-all font-mono"
-                        />
-                      </div>
-                    )}
-
-                    <div className="relative">
-                      <label className="text-xs text-slate-400 font-pixel uppercase mb-2 block">Your Query</label>
-                      <textarea
-                        value={userInput}
-                        onChange={(e) => setUserInput(e.target.value)}
-                        placeholder="在此输入你的疑惑..."
-                        className="w-full h-32 bg-black border-2 border-slate-600 p-4 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:shadow-[4px_4px_0_0_#7e22ce] transition-all resize-none font-serif text-lg"
-                      />
-                    </div>
-
-                    <button
-                        onClick={startDivination}
-                        disabled={!userInput.trim() && selectedMode !== DivinationType.ASTROLOGY}
-                        className="w-full py-4 bg-purple-700 hover:bg-purple-600 text-white font-bold border-4 border-black shadow-[4px_4px_0_0_#000] active:translate-y-1 active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-3 mt-4"
+                {/* Interaction Mode */}
+                {selectedMode && (
+                  <div className="flex flex-col h-full animate-[slideUp_0.5s_ease-out]">
+                    <button 
+                        onClick={handleBack}
+                        className="self-start text-[10px] font-pixel text-slate-500 hover:text-amber-500 mb-6 flex items-center gap-2 uppercase tracking-widest"
                     >
-                        <Sparkles size={20} />
-                        <span className="font-pixel tracking-widest">SUMMON ORACLE</span>
+                        <ArrowLeft size={10} /> Return to Menu
                     </button>
-                  </div>
-                ) : (
-                  /* Result Section */
-                  <div className="flex flex-col h-[60vh]">
-                    
-                    {isLoading && !result && (
-                      <div className="flex-grow flex items-center justify-center">
-                        <LoadingOrb />
-                      </div>
-                    )}
 
-                    {(result || (!isLoading && hasStarted)) && (
-                      <div className="flex flex-col h-full">
-                        <div 
-                            ref={resultContainerRef}
-                            className="flex-grow overflow-y-auto pr-4 space-y-4 text-slate-300 leading-loose font-serif custom-scrollbar"
-                        >
-                          <div className="prose prose-invert prose-p:text-slate-300 prose-headings:text-amber-400 prose-strong:text-purple-300 max-w-none border-l-4 border-slate-800 pl-4">
-                              <ReactMarkdown 
-                                components={{
-                                  strong: ({node, ...props}) => <span className="text-amber-300 font-bold bg-amber-900/30 px-1" {...props} />,
-                                  h1: ({node, ...props}) => <h1 className="text-2xl font-bold border-b-2 border-slate-700 pb-2 mb-4 font-cinzel" {...props} />,
-                                  h2: ({node, ...props}) => <h2 className="text-xl font-bold mt-6 mb-3 text-purple-300 font-cinzel" {...props} />,
-                                  li: ({node, ...props}) => <li className="marker:text-amber-500" {...props} />
-                                }}
-                              >
-                                {result}
-                              </ReactMarkdown>
-                          </div>
-                          {isLoading && <span className="inline-block w-3 h-6 bg-amber-500 animate-pulse ml-2 align-middle border border-black"></span>}
+                    {!hasStarted ? (
+                        <div className="space-y-6 flex-grow flex flex-col justify-center">
+                             <div className="text-center">
+                                <PixelMoon size={48} className="mx-auto mb-4 animate-pulse text-purple-400" />
+                                <h2 className="font-cinzel text-2xl text-amber-500 mb-2">
+                                    {MODES.find(m => m.id === selectedMode)?.name}
+                                </h2>
+                                <div className="h-px w-24 bg-gradient-to-r from-transparent via-slate-500 to-transparent mx-auto"></div>
+                             </div>
+
+                             {selectedMode === DivinationType.ASTROLOGY && (
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-pixel text-slate-400">DATE OF BIRTH</label>
+                                    <input 
+                                        type="date" 
+                                        value={birthDate}
+                                        onChange={(e) => setBirthDate(e.target.value)}
+                                        className="w-full bg-black border border-slate-600 p-3 text-sm text-center font-mono text-amber-500 focus:border-amber-500 focus:outline-none focus:shadow-[0_0_10px_rgba(245,158,11,0.3)] transition-all"
+                                    />
+                                </div>
+                             )}
+
+                             <div className="space-y-2">
+                                <label className="text-[10px] font-pixel text-slate-400">ENTER YOUR INTENTION</label>
+                                <textarea
+                                    value={userInput}
+                                    onChange={(e) => setUserInput(e.target.value)}
+                                    placeholder="在此专注于你的问题..."
+                                    className="w-full h-32 bg-black border border-slate-600 p-4 text-slate-200 placeholder-slate-700 focus:outline-none focus:border-purple-500 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)] transition-all resize-none font-serif text-lg leading-relaxed text-center"
+                                />
+                             </div>
+
+                             <button
+                                onClick={startDivination}
+                                disabled={!userInput.trim() && selectedMode !== DivinationType.ASTROLOGY}
+                                className="w-full py-4 bg-amber-900/30 border-2 border-amber-600 text-amber-500 font-bold hover:bg-amber-600 hover:text-black transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-3 group"
+                             >
+                                <Sparkles className="group-hover:animate-spin" size={18} />
+                                <span className="font-pixel text-xs tracking-[0.2em]">REVEAL FATE</span>
+                             </button>
                         </div>
-                        
-                        {!isLoading && (
-                          <div className="mt-6 pt-6 border-t-2 border-slate-800 border-dashed flex justify-center">
-                              <button
-                                onClick={() => {
-                                    setHasStarted(false);
-                                    setUserInput('');
-                                    setBirthDate('');
-                                }}
-                                className="px-8 py-3 bg-slate-800 hover:bg-slate-700 text-amber-200 text-xs font-pixel uppercase tracking-widest border-2 border-slate-500 shadow-[3px_3px_0_0_#000] active:translate-y-1 active:shadow-none transition-all"
-                              >
-                                Ask Again
-                              </button>
-                          </div>
-                        )}
-                      </div>
+                    ) : (
+                        <div className="flex flex-col h-full min-h-[400px]">
+                             {isLoading && !result && (
+                                <div className="flex-grow flex flex-col items-center justify-center">
+                                    <LoadingOrb />
+                                </div>
+                             )}
+
+                             {(result || !isLoading) && (
+                                <div className="flex flex-col h-full">
+                                    <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar border-t border-b border-slate-800 py-4 bg-black/20" ref={resultContainerRef}>
+                                        <div className="prose prose-invert prose-p:text-slate-300 prose-headings:text-amber-500 prose-strong:text-purple-300 max-w-none text-justify">
+                                            <ReactMarkdown 
+                                                components={{
+                                                    strong: ({node, ...props}) => <strong className="text-amber-400 font-bold font-cinzel text-lg block mt-4 mb-2 border-l-2 border-amber-600 pl-3" {...props} />,
+                                                    p: ({node, ...props}) => <p className="mb-4 leading-8 text-slate-300" {...props} />,
+                                                    li: ({node, ...props}) => <li className="list-none mb-2 pl-4 border-l border-slate-700 text-slate-400" {...props} />
+                                                }}
+                                            >
+                                                {result}
+                                            </ReactMarkdown>
+                                            {isLoading && <span className="inline-block w-2 h-5 bg-amber-500 animate-pulse align-middle ml-1"></span>}
+                                        </div>
+                                    </div>
+                                    
+                                    {!isLoading && (
+                                        <div className="mt-6 text-center">
+                                            <button 
+                                                onClick={() => { setHasStarted(false); setUserInput(''); setBirthDate(''); }}
+                                                className="px-8 py-2 border border-slate-600 text-slate-400 text-[10px] font-pixel hover:bg-slate-800 hover:text-white transition-colors uppercase tracking-widest"
+                                            >
+                                                Start New Session
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                             )}
+                        </div>
                     )}
                   </div>
                 )}
-              </div>
             </div>
           </div>
-        )}
-      </main>
-
-      {/* Footer */}
-      <footer className="w-full p-6 text-center text-slate-500 text-[10px] font-pixel z-10 opacity-70">
-        <span className="border-b border-slate-700 pb-1">MYSTIC ORACLE © 2025</span>
-      </footer>
+        </div>
+        
+        <div className="text-center mt-6 opacity-30">
+            <PixelSkull size={24} className="mx-auto mb-2" />
+            <p className="font-pixel text-[8px] text-slate-500 tracking-widest">EST. 2025 • MYSTIC ORACLE WEB</p>
+        </div>
+      </div>
     </div>
   );
 };
