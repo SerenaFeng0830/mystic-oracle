@@ -40,7 +40,7 @@ export const streamDivination = async function* (
   const fullPrompt = `用户问题: ${userInput}。${context ? `背景信息: ${context}` : ''}。请开始占卜。`;
 
   try {
-    const response = await fetch('/api/chat', {
+    const response = await fetch('/api/proxy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -49,61 +49,24 @@ export const streamDivination = async function* (
       })
     });
 
-    if (!response.ok || !response.body) {
-      throw new Error(`API Error: ${response.statusText}`);
+    if (!response.ok) {
+      throw new Error(`Connection Error: ${response.statusText}`);
     }
+
+    if (!response.body) return;
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
-    let buffer = '';
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-
-      // Decode the stream chunk
       const chunk = decoder.decode(value, { stream: true });
-      buffer += chunk;
-
-      // The raw stream from Gemini is a JSON array that comes in pieces.
-      // We need to parse valid JSON objects from the buffer.
-      // A simple heuristic for this stream: it usually starts with [, ends with ]
-      // But standard REST stream sends individual JSON objects separated or in an array structure depending on implementation.
-      // For simplicity in this demo, we will use a regex to find "text" fields if JSON parsing fails on partial chunks,
-      // or try to parse the accumulation.
-
-      // Actually, standard Gemini REST stream sends a format like:
-      // [{ "candidates": [...] }]
-      // ,
-      // [{ "candidates": [...] }]
-      
-      // Let's implement a robust "bracket counter" or just clean up the buffer.
-      // Simplified approach: Extract text directly via regex from the raw chunk buffer to avoid strict JSON parsing issues on stream boundaries.
-      
-      // Look for "text": "..." content.
-      const regex = /"text":\s*"((?:[^"\\]|\\.)*)"/g;
-      let match;
-      while ((match = regex.exec(buffer)) !== null) {
-        // Unescape JSON string
-        try {
-          const text = JSON.parse(`"${match[1]}"`);
-          yield text;
-        } catch (e) {
-          // Fallback if regex match isn't perfect JSON string
-          yield match[1]; 
-        }
-      }
-      
-      // Clear buffer that has been processed (this is a simplified implementation)
-      // For production, you'd want a true streaming JSON parser.
-      const lastIndex = buffer.lastIndexOf('}');
-      if (lastIndex !== -1) {
-        buffer = buffer.substring(lastIndex + 1);
-      }
+      yield chunk;
     }
 
   } catch (error) {
     console.error("Divination Error:", error);
-    yield "\n\n( 连接中断：神谕之光暂时暗淡，请检查网络后重试 )";
+    yield "\n\n( 连接中断：灵能讯号微弱，请检查网络配置或API Key设置。 )";
   }
 };
