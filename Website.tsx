@@ -4,35 +4,35 @@ import LoadingOrb from './components/LoadingOrb';
 import { PixelMoon, PixelPotion, PixelCrystalBall, PixelSkull } from './components/PixelSymbols';
 import { streamDivination } from './services/geminiService';
 import { DivinationType, DivinationConfig } from './types';
-import { Sparkles, ArrowLeft } from 'lucide-react';
+import { Sparkles, ArrowRight, Globe, Monitor } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 // Constants for UI
 const MODES: DivinationConfig[] = [
   {
     id: DivinationType.TAROT,
-    name: "塔罗秘境 (Tarot)",
+    name: "塔罗秘境",
     description: "揭示过去、现在与未来的潜意识指引。",
     icon: "cards",
     color: "bg-purple-900"
   },
   {
     id: DivinationType.ICHING,
-    name: "周易神算 (I Ching)",
+    name: "周易神算",
     description: "源自东方的古老智慧，解析阴阳变幻。",
     icon: "yin-yang",
     color: "bg-slate-800"
   },
   {
     id: DivinationType.ASTROLOGY,
-    name: "星盘解读 (Astrology)",
+    name: "星盘解读",
     description: "聆听星辰的低语，洞察宇宙能量。",
     icon: "star",
     color: "bg-blue-900"
   },
   {
     id: DivinationType.RUNES,
-    name: "卢恩符文 (Runes)",
+    name: "卢恩符文",
     description: "北欧奥丁的神谕，直击命运核心。",
     icon: "stone",
     color: "bg-emerald-900"
@@ -56,12 +56,7 @@ const Website: React.FC = () => {
     setResult('');
     setUserInput('');
     setHasStarted(false);
-  };
-
-  const handleBack = () => {
-    setSelectedMode(null);
-    setResult('');
-    setHasStarted(false);
+    setBirthDate('');
   };
 
   const startDivination = async () => {
@@ -99,201 +94,213 @@ const Website: React.FC = () => {
   }, [result]);
 
   return (
-    <div className="min-h-screen text-slate-200 relative overflow-hidden flex flex-col items-center">
+    <div className="min-h-screen text-slate-200 relative flex flex-col font-serif">
       <ParticleBackground />
 
-      {/* Decorative Pixel Stickers */}
-      <div className="fixed top-10 left-[5%] animate-float opacity-80 hidden lg:block pointer-events-none z-0">
-        <PixelPotion size={120} />
-      </div>
-      <div className="fixed bottom-20 right-[5%] animate-float opacity-60 hidden lg:block pointer-events-none z-0" style={{ animationDelay: '1s' }}>
-        <PixelCrystalBall size={140} />
-      </div>
-      <div className="fixed top-20 right-[10%] opacity-40 hidden lg:block pointer-events-none z-0">
-        <PixelMoon size={80} color="#fbbf24" />
-      </div>
-      <div className="fixed bottom-10 left-[10%] opacity-30 hidden lg:block pointer-events-none z-0" style={{ animationDelay: '2s' }}>
-        <PixelSkull size={100} />
-      </div>
-
-      {/* Website Navigation/Header */}
-      <nav className="w-full border-b-4 border-slate-800 bg-slate-900/80 px-8 py-4 flex justify-between items-center z-20 sticky top-0 backdrop-blur-sm">
-         <div className="font-pixel text-amber-500 text-lg flex items-center gap-2">
-            <span className="w-3 h-3 bg-amber-500 inline-block animate-pulse"></span>
-            MYSTIC-ORACLE.NET
+      {/* Website Top Navigation Bar */}
+      <nav className="w-full h-16 bg-slate-900/90 border-b-4 border-slate-700 flex items-center justify-between px-6 md:px-12 z-50 shadow-[0_4px_0_0_rgba(0,0,0,0.3)]">
+         <div className="flex items-center gap-3">
+             <div className="w-8 h-8 bg-amber-500 border-2 border-white flex items-center justify-center font-bold text-black font-pixel text-xl">M</div>
+             <div className="font-pixel text-amber-500 text-xl tracking-wider hidden md:block">
+                MYSTIC-ORACLE.NET
+             </div>
          </div>
-         <div className="hidden md:flex space-x-6 text-xs font-pixel text-slate-400">
-            <span className="hover:text-white cursor-pointer">HOME</span>
-            <span className="hover:text-white cursor-pointer">ABOUT</span>
-            <span className="hover:text-white cursor-pointer">CONTACT</span>
+         <div className="flex space-x-8 text-xs font-pixel text-slate-400">
+            <a href="#" className="hover:text-amber-400 transition-colors flex items-center gap-2"><Globe size={14}/> GLOBAL_NODES</a>
+            <a href="#" className="hover:text-amber-400 transition-colors flex items-center gap-2"><Monitor size={14}/> SYSTEM_STATUS</a>
          </div>
       </nav>
 
-      {/* Hero Header */}
-      <header className="w-full p-8 flex flex-col items-center justify-center z-10 relative mt-4">
-        <div className="border-4 border-amber-500 bg-black/80 p-6 shadow-[8px_8px_0_0_#b45309] transform hover:-translate-y-1 transition-transform cursor-pointer" onClick={handleBack}>
-           <h1 className="text-3xl md:text-5xl font-pixel font-bold text-amber-400 tracking-wider pixel-text-shadow">
-            MYSTIC-ORACLE.NET
-          </h1>
-          <p className="text-center text-amber-200 mt-2 font-serif text-sm md:text-base border-t-2 border-amber-900/50 pt-2 tracking-[0.2em]">
-            全球神秘文化在线占卜网
-          </p>
-        </div>
-      </header>
-
-      <main className="w-full max-w-4xl px-4 pb-12 z-10 flex-grow flex flex-col justify-center">
+      <div className="flex-grow flex flex-col md:flex-row max-w-[1600px] w-full mx-auto p-4 md:p-8 gap-8 z-10">
         
-        {/* Mode Selection Grid */}
-        {!selectedMode && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-[fadeIn_1s_ease-out] mt-4">
-            {MODES.map((mode) => (
-              <button
-                key={mode.id}
-                onClick={() => handleModeSelect(mode.id)}
-                className={`group relative pixel-box p-6 transition-all duration-200 hover:bg-slate-800 bg-opacity-90 bg-slate-900`}
-              >
-                 {/* Inner border for double-border effect */}
-                 <div className="absolute inset-1 border-2 border-white/5 pointer-events-none" />
-                 
-                <div className="relative z-10 flex items-start space-x-4">
-                  <div className={`p-4 ${mode.color} border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,0.5)]`}>
-                    <div className="text-white">
-                        {mode.id === DivinationType.TAROT && <div className="font-pixel text-2xl">I</div>}
-                        {mode.id === DivinationType.ICHING && <div className="font-pixel text-2xl">II</div>}
-                        {mode.id === DivinationType.ASTROLOGY && <div className="font-pixel text-2xl">III</div>}
-                        {mode.id === DivinationType.RUNES && <div className="font-pixel text-2xl">IV</div>}
-                    </div>
-                  </div>
-                  <div className="text-left pt-1">
-                    <h2 className="text-xl font-bold text-amber-300 group-hover:text-amber-200 transition-colors font-cinzel pixel-text-shadow">{mode.name}</h2>
-                    <p className="text-sm text-slate-400 mt-2 leading-relaxed font-sans">{mode.description}</p>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Divination Interface */}
-        {selectedMode && (
-          <div className="w-full max-w-2xl mx-auto animate-[slideUp_0.5s_ease-out]">
-            
-            {/* Retro Card Container */}
-            <div className="bg-[#1a1b26] border-4 border-slate-500 shadow-[8px_8px_0_0_#0f172a] p-1">
-              <div className="border-2 border-slate-700 p-6 md:p-8 bg-[#13141f]">
-              
-                {/* Header with Back Button */}
-                <div className="flex items-center justify-between mb-8 pb-4 border-b-4 border-slate-800 border-dashed">
-                  <button 
-                    onClick={handleBack}
-                    className="flex items-center text-slate-400 hover:text-amber-400 transition-colors group"
-                  >
-                    <ArrowLeft size={20} className="mr-2 group-hover:-translate-x-1 transition-transform" />
-                    <span className="font-pixel text-xs">WEB_HOME</span>
-                  </button>
-                  <h2 className="text-xl md:text-2xl font-bold text-amber-400 font-cinzel pixel-text-shadow tracking-widest">
-                    {MODES.find(m => m.id === selectedMode)?.name.split('(')[0]}
-                  </h2>
-                </div>
-
-                {/* Input Section */}
-                {!hasStarted ? (
-                  <div className="space-y-6">
-                    <div className="text-center mb-6 bg-slate-900/50 p-4 border-2 border-slate-800">
-                        <p className="text-lg text-purple-300 font-serif italic">
-                          "Connecting to Mystic Server..."
-                        </p>
-                    </div>
-
-                    {selectedMode === DivinationType.ASTROLOGY && (
-                      <div className="flex flex-col space-y-2">
-                        <label className="text-xs text-slate-400 font-pixel uppercase">Birth Date</label>
-                        <input
-                            type="date"
-                            value={birthDate}
-                            onChange={(e) => setBirthDate(e.target.value)}
-                            className="w-full bg-black border-2 border-slate-600 p-3 text-slate-200 focus:outline-none focus:border-amber-500 focus:shadow-[4px_4px_0_0_#b45309] transition-all font-mono"
-                        />
-                      </div>
-                    )}
-
-                    <div className="relative">
-                      <label className="text-xs text-slate-400 font-pixel uppercase mb-2 block">Your Query</label>
-                      <textarea
-                        value={userInput}
-                        onChange={(e) => setUserInput(e.target.value)}
-                        placeholder="在此输入你的疑惑..."
-                        className="w-full h-32 bg-black border-2 border-slate-600 p-4 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:shadow-[4px_4px_0_0_#7e22ce] transition-all resize-none font-serif text-lg"
-                      />
-                    </div>
-
-                    <button
-                        onClick={startDivination}
-                        disabled={!userInput.trim() && selectedMode !== DivinationType.ASTROLOGY}
-                        className="w-full py-4 bg-purple-700 hover:bg-purple-600 text-white font-bold border-4 border-black shadow-[4px_4px_0_0_#000] active:translate-y-1 active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-3 mt-4"
-                    >
-                        <Sparkles size={20} />
-                        <span className="font-pixel tracking-widest">SUBMIT QUERY</span>
-                    </button>
-                  </div>
-                ) : (
-                  /* Result Section */
-                  <div className="flex flex-col h-[60vh]">
-                    
-                    {isLoading && !result && (
-                      <div className="flex-grow flex items-center justify-center">
-                        <LoadingOrb />
-                      </div>
-                    )}
-
-                    {(result || (!isLoading && hasStarted)) && (
-                      <div className="flex flex-col h-full">
-                        <div 
-                            ref={resultContainerRef}
-                            className="flex-grow overflow-y-auto pr-4 space-y-4 text-slate-300 leading-loose font-serif custom-scrollbar"
+        {/* Sidebar Navigation */}
+        <aside className="w-full md:w-80 flex flex-col gap-4 animate-[fadeIn_0.5s_ease-out]">
+            <div className="bg-slate-900/80 border-4 border-slate-600 p-4 shadow-[4px_4px_0_0_#000]">
+                <h3 className="font-pixel text-slate-400 text-xs mb-4 border-b-2 border-slate-700 pb-2">SELECT MODULE</h3>
+                <div className="flex flex-col gap-3">
+                    {MODES.map((mode) => (
+                        <button
+                            key={mode.id}
+                            onClick={() => handleModeSelect(mode.id)}
+                            className={`
+                                w-full p-3 text-left border-2 transition-all flex items-center gap-3 font-cinzel text-sm font-bold
+                                ${selectedMode === mode.id 
+                                    ? 'bg-amber-900/50 border-amber-500 text-amber-200 shadow-[2px_2px_0_0_#b45309] translate-x-1' 
+                                    : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-slate-200 hover:border-slate-500'}
+                            `}
                         >
-                          <div className="prose prose-invert prose-p:text-slate-300 prose-headings:text-amber-400 prose-strong:text-purple-300 max-w-none border-l-4 border-slate-800 pl-4">
-                              <ReactMarkdown 
-                                components={{
-                                  strong: ({node, ...props}) => <span className="text-amber-300 font-bold bg-amber-900/30 px-1" {...props} />,
-                                  h1: ({node, ...props}) => <h1 className="text-2xl font-bold border-b-2 border-slate-700 pb-2 mb-4 font-cinzel" {...props} />,
-                                  h2: ({node, ...props}) => <h2 className="text-xl font-bold mt-6 mb-3 text-purple-300 font-cinzel" {...props} />,
-                                  li: ({node, ...props}) => <li className="marker:text-amber-500" {...props} />
-                                }}
-                              >
-                                {result}
-                              </ReactMarkdown>
-                          </div>
-                          {isLoading && <span className="inline-block w-3 h-6 bg-amber-500 animate-pulse ml-2 align-middle border border-black"></span>}
-                        </div>
-                        
-                        {!isLoading && (
-                          <div className="mt-6 pt-6 border-t-2 border-slate-800 border-dashed flex justify-center">
-                              <button
-                                onClick={() => {
-                                    setHasStarted(false);
-                                    setUserInput('');
-                                    setBirthDate('');
-                                }}
-                                className="px-8 py-3 bg-slate-800 hover:bg-slate-700 text-amber-200 text-xs font-pixel uppercase tracking-widest border-2 border-slate-500 shadow-[3px_3px_0_0_#000] active:translate-y-1 active:shadow-none transition-all"
-                              >
-                                NEW QUERY
-                              </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+                            <span className={`w-2 h-2 ${selectedMode === mode.id ? 'bg-amber-400' : 'bg-slate-600'}`}></span>
+                            {mode.name}
+                        </button>
+                    ))}
+                </div>
             </div>
-          </div>
-        )}
-      </main>
 
-      {/* Footer */}
-      <footer className="w-full p-6 text-center text-slate-500 text-[10px] font-pixel z-10 opacity-70">
-        <span className="border-b border-slate-700 pb-1">MYSTIC-ORACLE.NET © 2025 | ALL RIGHTS RESERVED</span>
+            {/* Decorative Sidebar Element */}
+            <div className="hidden md:flex flex-col items-center justify-center p-6 bg-black/40 border-2 border-dashed border-slate-700 flex-grow min-h-[200px]">
+                <PixelCrystalBall size={100} />
+                <p className="font-pixel text-[10px] text-slate-500 mt-4 text-center">
+                    SERVER_TIME: <br/> {new Date().toLocaleTimeString()}
+                </p>
+            </div>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="flex-grow relative min-h-[600px]">
+            {/* Background Container Box */}
+            <div className="absolute inset-0 bg-slate-900/60 border-4 border-slate-600 shadow-[8px_8px_0_0_rgba(0,0,0,0.5)] z-0"></div>
+            
+            <div className="relative z-10 h-full p-6 md:p-10 flex flex-col">
+                
+                {!selectedMode ? (
+                    // Welcome Screen (Empty State)
+                    <div className="flex-grow flex flex-col items-center justify-center text-center space-y-6 animate-[fadeIn_1s]">
+                        <PixelPotion size={120} />
+                        <h1 className="text-4xl md:text-6xl font-pixel text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-purple-400 py-2">
+                            WELCOME USER
+                        </h1>
+                        <p className="max-w-xl text-slate-400 font-serif text-lg leading-relaxed">
+                            欢迎来到 MysticOracle.net。这是一个连接古代神秘学与现代人工智能的数字枢纽。<br/>
+                            请在左侧侧边栏选择一种占卜模块以开始您的命运探索之旅。
+                        </p>
+                        <div className="grid grid-cols-4 gap-4 mt-8 opacity-50">
+                            <PixelMoon size={32} />
+                            <PixelSkull size={32} />
+                            <PixelMoon size={32} />
+                            <PixelSkull size={32} />
+                        </div>
+                    </div>
+                ) : (
+                    // Divination Interface
+                    <div className="flex flex-col h-full animate-[fadeIn_0.5s]">
+                         {/* Header */}
+                        <header className="flex items-center justify-between border-b-2 border-slate-700 pb-4 mb-6">
+                            <div className="flex items-center gap-4">
+                                <div className={`w-12 h-12 ${MODES.find(m => m.id === selectedMode)?.color} border-2 border-white flex items-center justify-center`}>
+                                   {/* Simple Icon representation */}
+                                   <Sparkles className="text-white" size={24} />
+                                </div>
+                                <div>
+                                    <h2 className="text-3xl font-cinzel font-bold text-amber-400">
+                                        {MODES.find(m => m.id === selectedMode)?.name}
+                                    </h2>
+                                    <p className="text-xs font-pixel text-slate-500 uppercase tracking-widest">
+                                        {MODES.find(m => m.id === selectedMode)?.description}
+                                    </p>
+                                </div>
+                            </div>
+                        </header>
+
+                        {/* Interaction Area */}
+                        <div className="flex-grow flex flex-col md:flex-row gap-6">
+                            
+                            {/* Input Column */}
+                            <div className={`w-full md:w-1/3 flex flex-col gap-4 transition-all duration-500 ${hasStarted ? 'md:w-1/4 opacity-60' : ''}`}>
+                                 {selectedMode === DivinationType.ASTROLOGY && (
+                                    <div className="flex flex-col space-y-1">
+                                        <label className="text-[10px] text-slate-400 font-pixel uppercase">Target Date</label>
+                                        <input
+                                            type="date"
+                                            value={birthDate}
+                                            onChange={(e) => setBirthDate(e.target.value)}
+                                            className="w-full bg-black border-2 border-slate-600 p-2 text-slate-200 focus:outline-none focus:border-amber-500 transition-all font-mono text-sm"
+                                        />
+                                    </div>
+                                )}
+                                
+                                <div className="flex-grow flex flex-col">
+                                    <label className="text-[10px] text-slate-400 font-pixel uppercase mb-1">Query Input</label>
+                                    <textarea
+                                        value={userInput}
+                                        onChange={(e) => setUserInput(e.target.value)}
+                                        placeholder="在此输入您的问题..."
+                                        disabled={hasStarted}
+                                        className="w-full flex-grow min-h-[200px] bg-black border-2 border-slate-600 p-3 text-slate-200 focus:outline-none focus:border-purple-500 transition-all resize-none font-serif disabled:opacity-50 disabled:cursor-not-allowed"
+                                    />
+                                </div>
+
+                                <button
+                                    onClick={startDivination}
+                                    disabled={(!userInput.trim() && selectedMode !== DivinationType.ASTROLOGY) || (hasStarted && isLoading)}
+                                    className="w-full py-3 bg-purple-700 hover:bg-purple-600 text-white font-bold border-2 border-black shadow-[4px_4px_0_0_#000] active:translate-y-1 active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                                >
+                                    {isLoading ? <LoadingOrb /> : (
+                                        <>
+                                            <span className="font-pixel text-xs tracking-widest">INITIATE</span>
+                                            <ArrowRight size={16} />
+                                        </>
+                                    )}
+                                </button>
+                                
+                                {hasStarted && !isLoading && (
+                                     <button
+                                        onClick={() => {
+                                            setHasStarted(false);
+                                            setUserInput('');
+                                            setBirthDate('');
+                                        }}
+                                        className="w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold border-2 border-black text-xs font-pixel"
+                                    >
+                                        RESET
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Output Column */}
+                            <div className="w-full md:w-2/3 bg-black/40 border-2 border-slate-700 p-4 relative overflow-hidden flex flex-col">
+                                <div className="absolute top-0 left-0 bg-slate-800 text-[10px] font-pixel px-2 py-1 text-slate-400 border-b border-r border-slate-700">
+                                    OUTPUT_TERMINAL
+                                </div>
+                                
+                                {!hasStarted && (
+                                    <div className="flex-grow flex items-center justify-center opacity-30">
+                                        <PixelMoon size={64} />
+                                    </div>
+                                )}
+
+                                {hasStarted && (
+                                    <div 
+                                        ref={resultContainerRef}
+                                        className="mt-6 flex-grow overflow-y-auto pr-2 custom-scrollbar"
+                                    >
+                                         <div className="prose prose-invert prose-p:text-slate-300 prose-headings:text-amber-400 prose-strong:text-purple-300 max-w-none">
+                                            <ReactMarkdown 
+                                                components={{
+                                                strong: ({node, ...props}) => <span className="text-amber-300 font-bold bg-amber-900/30 px-1" {...props} />,
+                                                h1: ({node, ...props}) => <h1 className="text-2xl font-bold border-b border-dashed border-slate-700 pb-2 mb-4 font-cinzel text-amber-500" {...props} />,
+                                                h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-6 mb-3 text-purple-400 font-cinzel" {...props} />,
+                                                li: ({node, ...props}) => <li className="marker:text-amber-500" {...props} />
+                                                }}
+                                            >
+                                                {result}
+                                            </ReactMarkdown>
+                                            {isLoading && <span className="inline-block w-2 h-4 bg-amber-500 animate-pulse ml-1 align-middle"></span>}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </main>
+      </div>
+
+      {/* Website Footer */}
+      <footer className="w-full bg-slate-900 border-t-4 border-slate-700 py-8 mt-8">
+         <div className="max-w-[1600px] mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+             <div className="text-left">
+                 <h4 className="font-pixel text-slate-300 mb-2">MYSTIC-ORACLE.NET</h4>
+                 <p className="text-slate-500 text-xs font-serif max-w-md">
+                     本网站提供的所有占卜结果均由人工智能生成，仅供娱乐与心理咨询参考。请勿将结果作为重大人生决策的唯一依据。
+                 </p>
+             </div>
+             <div className="flex gap-4 font-pixel text-[10px] text-slate-400">
+                 <a href="#" className="hover:text-white underline">PRIVACY_POLICY</a>
+                 <a href="#" className="hover:text-white underline">TERMS_OF_SERVICE</a>
+                 <a href="#" className="hover:text-white underline">API_STATUS</a>
+             </div>
+         </div>
       </footer>
     </div>
   );

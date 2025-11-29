@@ -15,6 +15,7 @@
         background-color: #050505;
         color: #e2e8f0;
         image-rendering: pixelated;
+        overflow-x: hidden;
       }
       .font-cinzel {
         font-family: 'Cinzel', serif;
@@ -25,18 +26,22 @@
       /* Custom scrollbar for mysterious feel - blocky version */
       ::-webkit-scrollbar {
         width: 12px;
-        background: #1e1e2e;
+        background: #0f172a;
       }
       ::-webkit-scrollbar-track {
-        background: #0f0f1a; 
-        border-left: 2px solid #2a2a3e;
+        background: #020617; 
+        border-left: 2px solid #1e293b;
       }
       ::-webkit-scrollbar-thumb {
-        background: #4a4a6a; 
-        border: 2px solid #0f0f1a;
+        background: #334155; 
+        border: 2px solid #0f172a;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #6a6a8a; 
+        background: #475569; 
+      }
+      
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 8px;
       }
       
       @keyframes float {
@@ -63,20 +68,23 @@
         text-shadow: 2px 2px 0px #000;
       }
     </style>
-  <script type="importmap">
+<script type="importmap">
 {
   "imports": {
     "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
     "react-markdown": "https://aistudiocdn.com/react-markdown@^10.1.0",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0"
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "vite": "https://aistudiocdn.com/vite@^7.2.4"
   }
 }
 </script>
 </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
