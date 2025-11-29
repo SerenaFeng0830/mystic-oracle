@@ -1,3 +1,4 @@
+
 import { DivinationType } from "../types";
 
 const SYSTEM_INSTRUCTIONS: Record<DivinationType, string> = {
@@ -40,6 +41,8 @@ export const streamDivination = async function* (
   const fullPrompt = `用户问题: ${userInput}。${context ? `背景信息: ${context}` : ''}。请开始占卜。`;
 
   try {
+    // Attempt to call the proxy. The path depends on how it's deployed.
+    // netlify.toml redirects /api/* to /.netlify/functions/*
     const response = await fetch('/api/proxy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -50,7 +53,15 @@ export const streamDivination = async function* (
     });
 
     if (!response.ok) {
-      throw new Error(`Connection Error: ${response.statusText}`);
+        // Try to read error details
+        let errorMsg = response.statusText;
+        try {
+            const errData = await response.json();
+            if (errData.error) errorMsg = errData.error;
+        } catch (e) {
+            // ignore json parse error
+        }
+        throw new Error(`API Error (${response.status}): ${errorMsg}`);
     }
 
     if (!response.body) return;
@@ -67,6 +78,17 @@ export const streamDivination = async function* (
 
   } catch (error) {
     console.error("Divination Error:", error);
-    yield "\n\n( 连接中断：灵能讯号微弱，请检查网络配置或API Key设置。 )";
+    // Provide a more helpful error message to the UI
+    let userMessage = "\n\n( 连接中断：灵能讯号微弱。 )";
+    
+    if (error instanceof Error) {
+        if (error.message.includes("404")) {
+            userMessage = "\n\n( 错误 404：未找到占卜服务。请检查 netlify.toml 配置文件是否生效。 )";
+        } else if (error.message.includes("500")) {
+            userMessage = "\n\n( 错误 500：服务内部错误。请检查 Netlify 后台是否配置了 GEMINI_API_KEY。 )";
+        }
+    }
+    
+    yield userMessage;
   }
 };
